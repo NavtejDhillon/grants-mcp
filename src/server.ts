@@ -16,6 +16,10 @@ const {
   PUBLIC_URL = "https://funding.alltoohuman.nz",
   RATE_LIMIT_PER_MINUTE = "60",
   WRITE_LIMIT_PER_DAY = "20",
+  // Only forwarded-for headers from this address are believed. Anything that
+  // reaches the port directly is rate limited by its real socket address, so
+  // bypassing the reverse proxy does not bypass the limiter.
+  TRUSTED_PROXY = "127.0.0.1",
 } = process.env;
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
@@ -40,7 +44,7 @@ function buildServer(clientIp: string): McpServer {
 }
 
 const app = express();
-app.set("trust proxy", 1);
+app.set("trust proxy", TRUSTED_PROXY);
 
 const tooMany = {
   jsonrpc: "2.0",
