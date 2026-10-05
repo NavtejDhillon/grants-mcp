@@ -4,6 +4,7 @@ import type { Db } from "../supabase.js";
 import type { RateLimiter } from "../lib/ratelimit.js";
 import { registerFundersTools } from "./funders/index.js";
 import { registerRoundsTools } from "./rounds/index.js";
+import { registerFeedbackTools } from "./feedback/index.js";
 
 export interface ToolContext {
   db: Db;
@@ -16,4 +17,5 @@ export interface ToolContext {
 export function registerAllTools(server: McpServer, ctx: ToolContext) {
   registerFundersTools(server, ctx);
   registerRoundsTools(server, ctx);
+  registerFeedbackTools(server, ctx);
 }
