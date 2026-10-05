@@ -1,8 +1,11 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolContext } from "../index.js";
-import { ok, fail } from "../../lib/respond.js";
+import { ok, fail, dbFail } from "../../lib/respond.js";
+import { nzDate } from "../../lib/dates.js";
 import { PUBLIC_FUNDER_COLUMNS } from "../../lib/vocab.js";
+
+type FunderRow = { id: string } & Record<string, unknown>;
 
 export function registerFundersGetFunder(server: McpServer, ctx: ToolContext) {
   server.registerTool(
@@ -16,26 +19,26 @@ export function registerFundersGetFunder(server: McpServer, ctx: ToolContext) {
       },
     },
     async ({ slug }) => {
-      const { data: funderRow, error } = await ctx.db
+      const { data: funder, error } = await ctx.db
         .from("funders")
         .select(`id,${PUBLIC_FUNDER_COLUMNS}`)
         .eq("slug", slug)
         .eq("is_active", true)
-        .maybeSingle();
-      if (error) return fail(error.message);
-      const funder = funderRow as unknown as ({ id: string } & Record<string, unknown>) | null;
+        .maybeSingle()
+        .returns<FunderRow>();
+      if (error) return dbFail("get_funder", error);
       if (!funder) return fail(`No active funder with slug '${slug}'`);
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = nzDate(0);
       const { data: rounds, error: roundsError } = await ctx.db
         .from("funding_rounds")
         .select("round_name,opens_at,closes_at,decision_by,amount_available,notes,source_url,is_recurring,recurrence_pattern,status")
         .eq("funder_id", funder.id)
-        .neq("status", "cancelled")
+        .or("status.is.null,status.neq.cancelled")
         .or(`closes_at.gte.${today},closes_at.is.null`)
         .order("closes_at", { ascending: true, nullsFirst: false })
         .limit(10);
-      if (roundsError) return fail(roundsError.message);
+      if (roundsError) return dbFail("get_funder", roundsError);
 
       const { id: _id, ...publicFunder } = funder;
       return ok({ ...publicFunder, upcoming_rounds: rounds ?? [] });

@@ -17,3 +17,9 @@ export function clip(value: string | null | undefined, max: number): string | nu
   if (max < 4) return value.slice(0, Math.max(0, max));
   return value.length <= max ? value : value.slice(0, max - 3) + "...";
 }
+
+/** Log the database error server-side and give the client a generic message. */
+export function dbFail(tool: string, error: { message: string }) {
+  console.error(`${tool}: database error:`, error.message);
+  return fail("Database query failed; try simpler filters or try again later");
+}

@@ -1,15 +1,27 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolContext } from "../index.js";
-import { ok, fail, clip } from "../../lib/respond.js";
+import { ok, fail, dbFail, clip } from "../../lib/respond.js";
 import { REGIONS, ORG_TYPES, DIFFICULTIES } from "../../lib/vocab.js";
+import { quoteValue, searchText, regionOr, orgTypeOr } from "../../lib/filters.js";
 
 const SUMMARY_COLUMNS =
   "slug,name,parent_org,description,typical_range,min_amount,max_amount,eligible_regions,eligible_types,eligible_purposes,difficulty,application_method,website_url";
 
-/** Escape characters that have meaning in PostgREST filter strings. */
-function escapeLike(value: string): string {
-  return value.replace(/[%_,.()]/g, " ").trim();
+interface FunderSummaryRow {
+  slug: string;
+  name: string;
+  parent_org: string | null;
+  description: string | null;
+  typical_range: string | null;
+  min_amount: number | null;
+  max_amount: number | null;
+  eligible_regions: string[] | null;
+  eligible_types: string[] | null;
+  eligible_purposes: string[] | null;
+  difficulty: string | null;
+  application_method: string | null;
+  website_url: string | null;
 }
 
 export function registerFundersSearchFunders(server: McpServer, ctx: ToolContext) {
@@ -44,18 +56,19 @@ export function registerFundersSearchFunders(server: McpServer, ctx: ToolContext
         .eq("is_active", true);
 
       if (args.query) {
-        const term = escapeLike(args.query);
-        if (term) q = q.or(`name.ilike.%${term}%,description.ilike.%${term}%`);
+        const text = searchText(args.query);
+        if (text) q = q.or(`name.ilike.${quoteValue("%" + text + "%")},description.ilike.${quoteValue("%" + text + "%")}`);
       }
-      if (args.region) {
-        q = q.or(`eligible_regions.cs.{${args.region}},eligible_regions.cs.{national},eligible_regions.eq.{}`);
-      }
-      if (args.org_type) {
-        q = q.or(`eligible_types.cs.{${args.org_type}},eligible_types.eq.{}`);
-      }
+      if (args.region) q = q.or(regionOr(args.region));
+      if (args.org_type) q = q.or(orgTypeOr(args.org_type));
       if (args.purpose) {
-        const term = escapeLike(args.purpose);
-        if (term) q = q.or(`funder_priorities.ilike.%${term}%,description.ilike.%${term}%,eligible_purposes.cs.{${term}}`);
+        const text = searchText(args.purpose);
+        const tag = text.replace(/ /g, "_");
+        if (text) {
+          q = q.or(
+            `funder_priorities.ilike.${quoteValue("%" + text + "%")},description.ilike.${quoteValue("%" + text + "%")},eligible_purposes.cs.{${quoteValue(tag)}},eligible_purposes.cs.{${quoteValue(text)}}`,
+          );
+        }
       }
       if (args.max_amount) {
         q = q.or(`min_amount.is.null,min_amount.lte.${args.max_amount}`);
@@ -64,8 +77,9 @@ export function registerFundersSearchFunders(server: McpServer, ctx: ToolContext
 
       const { data, error, count } = await q
         .order("name", { ascending: true })
-        .range(args.offset, args.offset + args.limit - 1);
-      if (error) return fail(error.message);
+        .range(args.offset, args.offset + args.limit - 1)
+        .returns<FunderSummaryRow[]>();
+      if (error) return dbFail("search_funders", error);
 
       const rows = (data ?? []).map((f) => ({
         slug: f.slug,
