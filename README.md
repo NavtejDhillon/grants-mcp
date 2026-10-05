@@ -8,3 +8,9 @@ report_outcome, suggest_funder, flag_funder_detail. Prompts: find_funders_for_pr
 prepare_application, draft_application.
 
 Run locally: copy `.env.example` to `.env`, fill the key, `npm install`, `npm run build`, `npm start`.
+
+Every request to `/mcp` must send `Accept: application/json, text/event-stream` (the SDK returns 406 otherwise), for example:
+
+```
+curl -s -X POST http://localhost:3103/mcp -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```

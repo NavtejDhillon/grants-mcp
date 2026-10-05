@@ -3,7 +3,7 @@ import express from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createDb } from "./supabase.js";
-import { RateLimiter } from "./lib/ratelimit.js";
+import { RateLimiter, limiterKey } from "./lib/ratelimit.js";
 import { registerAllTools, type ToolContext } from "./tools/index.js";
 import { registerAllPrompts } from "./prompts/index.js";
 
@@ -41,6 +41,22 @@ function buildServer(clientIp: string): McpServer {
 
 const app = express();
 app.set("trust proxy", 1);
+
+const tooMany = {
+  jsonrpc: "2.0",
+  error: { code: -32000, message: "Too many requests, slow down" },
+  id: null,
+};
+
+// Rate check runs before body parsing so oversized or malformed bodies are throttled too.
+app.use("/mcp", (req, res, next) => {
+  if (!requestLimiter.allow(limiterKey(req.ip ?? ""), 1)) {
+    res.status(429).json(tooMany);
+    return;
+  }
+  next();
+});
+
 app.use(express.json({ limit: "64kb" }));
 
 app.get("/health", (_req, res) => {
@@ -48,14 +64,13 @@ app.get("/health", (_req, res) => {
 });
 
 app.post("/mcp", async (req, res) => {
-  const clientIp = req.ip || "unknown";
-  if (!requestLimiter.allow(clientIp)) {
-    res.status(429).json({
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Too many requests, slow down" },
-      id: null,
-    });
-    return;
+  const clientIp = limiterKey(req.ip ?? "");
+  // The HTTP request already cost 1; a batch of n costs n in total.
+  if (Array.isArray(req.body) && req.body.length > 1) {
+    if (!requestLimiter.allow(clientIp, req.body.length - 1)) {
+      res.status(429).json(tooMany);
+      return;
+    }
   }
   res.setHeader("X-Accel-Buffering", "no");
   const server = buildServer(clientIp);
@@ -64,8 +79,7 @@ app.post("/mcp", async (req, res) => {
     enableJsonResponse: true,
   });
   res.on("close", () => {
-    transport.close();
-    server.close();
+    void Promise.allSettled([transport.close(), server.close()]);
   });
   try {
     await server.connect(transport);
@@ -82,6 +96,19 @@ app.all("/mcp", (_req, res) => {
     error: { code: -32000, message: "Method not allowed; stateless server accepts POST only" },
     id: null,
   });
+});
+
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const type = (err as { type?: string } | null)?.type;
+  const status = type === "entity.too.large" ? 413 : type === "entity.parse.failed" ? 400 : 500;
+  if (status === 500) console.error("unhandled error:", err);
+  if (!res.headersSent) {
+    res.status(status).json({
+      jsonrpc: "2.0",
+      error: { code: -32700, message: status === 500 ? "internal error" : "invalid request body" },
+      id: null,
+    });
+  }
 });
 
 app.listen(Number(PORT), HOST, () => {
