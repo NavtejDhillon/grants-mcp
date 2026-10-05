@@ -44,7 +44,7 @@ export async function queryRounds(
     .gte(opts.column, nzDate(0))
     .lte(opts.column, nzDate(opts.days))
     .eq("funders.is_active", true);
-  if (opts.region) q = q.or(regionOr(opts.region), { foreignTable: "funders" });
+  if (opts.region) q = q.or(regionOr(opts.region), { referencedTable: "funders" });
   const { data, error } = await q.order(opts.column, { ascending: true }).limit(opts.limit).returns<RoundRow[]>();
   if (error) return { error };
   return { rounds: (data ?? []).map(shapeRound) };

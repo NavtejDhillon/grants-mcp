@@ -33,6 +33,16 @@ export const ORG_TYPES: Record<string, string> = {
   business: "Business or social enterprise",
 };
 
+export const OUTCOMES = ["approved", "partial", "declined", "waiting"] as const;
+
+export function isRegion(value: string): boolean {
+  return Object.hasOwn(REGIONS, value);
+}
+
+export function isOrgType(value: string): boolean {
+  return Object.hasOwn(ORG_TYPES, value);
+}
+
 export const DIFFICULTIES = ["simple", "moderate", "detailed"] as const;
 
 export const PUBLIC_FUNDER_COLUMNS = [

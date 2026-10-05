@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolContext } from "../index.js";
 import { ok, fail, dbFail, clip } from "../../lib/respond.js";
-import { REGIONS, ORG_TYPES, DIFFICULTIES } from "../../lib/vocab.js";
+import { isRegion, isOrgType, DIFFICULTIES } from "../../lib/vocab.js";
 import { quoteValue, searchText, regionOr, orgTypeOr } from "../../lib/filters.js";
 
 const SUMMARY_COLUMNS =
@@ -43,10 +43,10 @@ export function registerFundersSearchFunders(server: McpServer, ctx: ToolContext
       },
     },
     async (args) => {
-      if (args.region && !REGIONS[args.region]) {
+      if (args.region && !isRegion(args.region)) {
         return fail(`Unknown region '${args.region}'. Call list_filters for valid slugs.`);
       }
-      if (args.org_type && !ORG_TYPES[args.org_type]) {
+      if (args.org_type && !isOrgType(args.org_type)) {
         return fail(`Unknown org_type '${args.org_type}'. Call list_filters for valid values.`);
       }
 

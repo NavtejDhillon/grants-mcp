@@ -2,7 +2,7 @@
 export function cleanText(value: string | undefined, max: number): string | null {
   if (!value) return null;
   const cleaned = value
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g, "")
     .replace(/\s+/g, " ")
     .trim();
   if (!cleaned) return null;

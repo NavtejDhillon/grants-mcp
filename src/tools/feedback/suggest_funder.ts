@@ -3,7 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolContext } from "../index.js";
 import { ok, fail, dbFail } from "../../lib/respond.js";
 import { cleanText, isHttpUrl } from "../../lib/text.js";
-import { REGIONS } from "../../lib/vocab.js";
+import { isRegion } from "../../lib/vocab.js";
 
 export function registerFeedbackSuggestFunder(server: McpServer, ctx: ToolContext) {
   server.registerTool(
@@ -20,16 +20,17 @@ export function registerFeedbackSuggestFunder(server: McpServer, ctx: ToolContex
       },
     },
     async (args) => {
-      if (!ctx.writeLimiter.allow(ctx.clientIp)) return fail("Daily feedback limit reached for this connection; try again tomorrow");
-      if (args.url && !isHttpUrl(args.url)) return fail("url must start with http:// or https://");
-      if (args.region && !REGIONS[args.region]) return fail(`Unknown region '${args.region}'. Call list_filters.`);
+      if (!ctx.writeLimiter.allow(ctx.clientIp)) return fail("Feedback limit reached for this connection; try again within 24 hours");
+      const url = args.url?.trim();
+      if (url && !isHttpUrl(url)) return fail("url must start with http:// or https://");
+      if (args.region && !isRegion(args.region)) return fail(`Unknown region '${args.region}'. Call list_filters.`);
 
       const name = cleanText(args.name, 200);
       if (!name) return fail("name is required");
       const notes = cleanText(args.notes, 2000);
       const { error } = await ctx.db.from("funder_submissions").insert({
         funder_name: name,
-        funder_url: args.url ?? null,
+        funder_url: url || null,
         funder_description: `[via MCP] ${notes ?? "No notes provided"}`,
         region: args.region ?? null,
         status: "pending",

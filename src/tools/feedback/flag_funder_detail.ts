@@ -19,7 +19,7 @@ export function registerFeedbackFlagFunderDetail(server: McpServer, ctx: ToolCon
       },
     },
     async (args) => {
-      if (!ctx.writeLimiter.allow(ctx.clientIp)) return fail("Daily feedback limit reached for this connection; try again tomorrow");
+      if (!ctx.writeLimiter.allow(ctx.clientIp)) return fail("Feedback limit reached for this connection; try again within 24 hours");
 
       const { data: funder, error: lookupError } = await ctx.db
         .from("funders")
@@ -35,11 +35,14 @@ export function registerFeedbackFlagFunderDetail(server: McpServer, ctx: ToolCon
         funder_name: funder.name,
         funder_slug: funder.slug,
         funder_url: funder.website_url,
-        funder_description: null,
+        // enrichment_data is intentionally empty: the admin review tools apply it
+        // verbatim to the funders table, so anonymous prose must never go there.
+        // The suggested correction lives in funder_description for a human to read.
+        funder_description: `Flagged field: ${args.field}. Suggested correction: ${correction}`,
         funder_data: {},
         is_enrichment: true,
         enrichment_target_slug: funder.slug,
-        enrichment_data: { [args.field]: correction },
+        enrichment_data: {},
         source_type: "mcp_user",
         source_url: null,
         source_name: "mcp",

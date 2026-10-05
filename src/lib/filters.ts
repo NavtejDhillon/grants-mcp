@@ -9,7 +9,7 @@ export function quoteValue(value: string): string {
 
 /** Lowercased free text with wildcard and separator characters removed. */
 export function searchText(value: string): string {
-  return value.toLowerCase().replace(/[%_,.()]/g, " ").replace(/\s+/g, " ").trim();
+  return value.toLowerCase().replace(/[%_,.()*]/g, " ").replace(/\s+/g, " ").trim();
 }
 
 /** Funders with no region list, an empty one, or a nationwide tag fund anywhere. */

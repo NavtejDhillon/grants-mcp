@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolContext } from "../index.js";
 import { ok, fail, dbFail } from "../../lib/respond.js";
-import { REGIONS } from "../../lib/vocab.js";
+import { isRegion } from "../../lib/vocab.js";
 import { queryRounds } from "../../lib/rounds.js";
 
 export function registerRoundsClosingSoon(server: McpServer, ctx: ToolContext) {
@@ -19,7 +19,7 @@ export function registerRoundsClosingSoon(server: McpServer, ctx: ToolContext) {
       },
     },
     async ({ days, region, limit }) => {
-      if (region && !REGIONS[region]) return fail(`Unknown region '${region}'. Call list_filters.`);
+      if (region && !isRegion(region)) return fail(`Unknown region '${region}'. Call list_filters.`);
       const { rounds, error } = await queryRounds(ctx.db, { column: "closes_at", days, region, limit });
       if (error) return dbFail("rounds_closing_soon", error);
       return ok({ days, region: region ?? null, rounds });
