@@ -12,7 +12,7 @@ export function registerFeedbackReportOutcome(server: McpServer, ctx: ToolContex
       title: "Report an application outcome",
       description:
         "Tell us how an application to a funder went. Outcomes are stored for All Too Human to analyse which funders say yes and are never published as-is.",
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+      annotations: { title: "Report an application outcome", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       inputSchema: {
         funder_slug: z.string().min(1).max(120),
         outcome: z.enum(OUTCOMES).describe("approved = funded in full, partial = funded less than asked, declined, waiting = no decision yet"),

@@ -14,7 +14,7 @@ export function registerFundersGetFunder(server: McpServer, ctx: ToolContext) {
       title: "Get full funder profile",
       description:
         "Full profile for one funder by slug: what they prioritise, language tips, common mistakes, success factors, required documents, application sections, the extracted application form questions, and upcoming funding rounds. Use this before preparing or drafting an application.",
-      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      annotations: { title: "Get full funder profile", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       inputSchema: {
         slug: z.string().min(1).max(120).describe("Funder slug from search_funders"),
       },

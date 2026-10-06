@@ -11,8 +11,8 @@ export function registerFeedbackSuggestFunder(server: McpServer, ctx: ToolContex
     {
       title: "Suggest a missing funder",
       description:
-        "Suggest a New Zealand grant funder that is not in the database. All Too Human researches and reviews suggestions before adding them. Check search_funders first to avoid duplicates.",
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+        "Suggest a New Zealand grant funder that is not in the database. All Too Human researches and reviews suggestions before adding them. Check search_funders first to avoid duplicates. Documentation: https://www.alltoohuman.nz/grants/connect",
+      annotations: { title: "Suggest a missing funder", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       inputSchema: {
         name: z.string().min(3).max(200),
         url: z.string().max(500).optional().describe("The funder's website or funding page"),
