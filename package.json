@@ -1,6 +1,6 @@
 {
   "name": "grants-mcp",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Open MCP server for All Too Human's New Zealand grant funder database",
   "type": "module",
   "main": "dist/server.js",

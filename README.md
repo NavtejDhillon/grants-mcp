@@ -1,4 +1,4 @@
-# grants-mcp
+# grants-mcp (Community Funding NZ)
 
 Open MCP server for All Too Human's database of New Zealand community grant funders.
 Connect your AI to `https://funding.alltoohuman.nz/mcp` (Streamable HTTP, no login).

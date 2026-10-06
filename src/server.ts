@@ -7,7 +7,7 @@ import { RateLimiter, limiterKey } from "./lib/ratelimit.js";
 import { registerAllTools, type ToolContext } from "./tools/index.js";
 import { registerAllPrompts } from "./prompts/index.js";
 
-const VERSION = "1.1.0";
+const VERSION = "1.1.1";
 const {
   SUPABASE_URL = "https://data.decentralize.nz",
   SUPABASE_SERVICE_ROLE_KEY,
@@ -36,7 +36,7 @@ setInterval(() => {
 }, 10 * 60_000).unref();
 
 function buildServer(clientIp: string): McpServer {
-  const server = new McpServer({ name: "ath-grants", version: VERSION });
+  const server = new McpServer({ name: "community-funding-nz", version: VERSION });
   const ctx: ToolContext = { db, writeLimiter, clientIp };
   registerAllTools(server, ctx);
   registerAllPrompts(server);
