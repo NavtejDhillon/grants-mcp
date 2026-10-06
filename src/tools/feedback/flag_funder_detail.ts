@@ -12,6 +12,7 @@ export function registerFeedbackFlagFunderDetail(server: McpServer, ctx: ToolCon
       title: "Flag a wrong funder detail",
       description:
         "Report that a field on a funder profile is wrong or out of date, with the correction. Reviewed by All Too Human before any change is applied.",
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       inputSchema: {
         funder_slug: z.string().min(1).max(120),
         field: z.enum(FLAGGABLE_FIELDS),

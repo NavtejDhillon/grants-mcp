@@ -7,7 +7,7 @@ import { RateLimiter, limiterKey } from "./lib/ratelimit.js";
 import { registerAllTools, type ToolContext } from "./tools/index.js";
 import { registerAllPrompts } from "./prompts/index.js";
 
-const VERSION = "1.0.0";
+const VERSION = "1.1.0";
 const {
   SUPABASE_URL = "https://data.decentralize.nz",
   SUPABASE_SERVICE_ROLE_KEY,

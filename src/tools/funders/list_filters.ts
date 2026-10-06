@@ -9,6 +9,7 @@ export function registerFundersListFilters(server: McpServer) {
       title: "List valid search filters",
       description:
         "Returns the exact region slugs, organisation type values and difficulty levels accepted by search_funders. Call this first if you are unsure which value to use.",
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       inputSchema: {},
     },
     async () =>

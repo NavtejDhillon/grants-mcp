@@ -31,6 +31,7 @@ export function registerFundersSearchFunders(server: McpServer, ctx: ToolContext
       title: "Search grant funders",
       description:
         "Search New Zealand community grant funders. Returns up to 25 compact rows per call with a total count; use offset to page. Combine filters: region (slug from list_filters), org_type, purpose keywords, max_amount in NZD, difficulty. Use get_funder for the full profile of a result.",
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       inputSchema: {
         query: z.string().max(200).optional().describe("Free text matched against funder name and description"),
         region: z.string().optional().describe("Region slug, e.g. tasman. Funders tagged national always match."),

@@ -12,6 +12,7 @@ export function registerRoundsOpeningSoon(server: McpServer, ctx: ToolContext) {
       title: "Funding rounds opening soon",
       description:
         "Funding rounds whose opening date falls within the next N days (default 60, max 180), soonest first. Optional region filter (slug from list_filters). Useful for planning applications ahead of time. Dates are New Zealand dates. Always confirm the date on the funder's own site before relying on it.",
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       inputSchema: {
         days: z.number().int().min(1).max(180).default(60),
         region: z.string().optional(),
