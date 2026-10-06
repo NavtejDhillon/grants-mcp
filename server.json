@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.navtejdhillon/grants",
+  "name": "io.github.NavtejDhillon/grants",
   "title": "All Too Human Community Grant Finder",
   "description": "Search 380+ New Zealand community grant funders, deadlines and application questions. No login.",
   "version": "1.1.0",
