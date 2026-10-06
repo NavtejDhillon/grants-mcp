@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolContext } from "../index.js";
 import { ok, fail, dbFail } from "../../lib/respond.js";
-import { cleanText } from "../../lib/text.js";
+import { markIfFlagged, screenText } from "../../lib/screen.js";
 import { FLAGGABLE_FIELDS } from "../../lib/vocab.js";
 
 export function registerFeedbackFlagFunderDetail(server: McpServer, ctx: ToolContext) {
@@ -30,7 +30,7 @@ export function registerFeedbackFlagFunderDetail(server: McpServer, ctx: ToolCon
       if (lookupError) return dbFail("flag_funder_detail", lookupError);
       if (!funder) return fail(`No funder with slug '${args.funder_slug}'`);
 
-      const correction = cleanText(args.correction, 2000);
+      const correction = markIfFlagged(screenText(args.correction, 2000));
       if (!correction) return fail("correction is required");
       const { error } = await ctx.db.from("discovery_log").insert({
         funder_name: funder.name,

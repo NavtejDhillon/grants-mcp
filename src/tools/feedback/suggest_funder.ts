@@ -3,6 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolContext } from "../index.js";
 import { ok, fail, dbFail } from "../../lib/respond.js";
 import { cleanText, isHttpUrl } from "../../lib/text.js";
+import { markIfFlagged, screenText } from "../../lib/screen.js";
 import { isRegion } from "../../lib/vocab.js";
 
 export function registerFeedbackSuggestFunder(server: McpServer, ctx: ToolContext) {
@@ -28,7 +29,9 @@ export function registerFeedbackSuggestFunder(server: McpServer, ctx: ToolContex
 
       const name = cleanText(args.name, 200);
       if (!name) return fail("name is required");
-      const notes = cleanText(args.notes, 2000);
+      const notes = markIfFlagged(screenText(args.notes, 2000));
+      const nameScreen = screenText(args.name, 200);
+      if (nameScreen.flagged) return fail("name must be a plain organisation name");
       const { error } = await ctx.db.from("funder_submissions").insert({
         funder_name: name,
         funder_url: url || null,

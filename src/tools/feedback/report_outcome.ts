@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolContext } from "../index.js";
 import { ok, fail, dbFail } from "../../lib/respond.js";
-import { cleanText } from "../../lib/text.js";
+import { markIfFlagged, screenText } from "../../lib/screen.js";
 import { OUTCOMES } from "../../lib/vocab.js";
 
 export function registerFeedbackReportOutcome(server: McpServer, ctx: ToolContext) {
@@ -31,7 +31,8 @@ export function registerFeedbackReportOutcome(server: McpServer, ctx: ToolContex
       if (lookupError) return dbFail("report_outcome", lookupError);
       if (!funder) return fail(`No funder with slug '${args.funder_slug}'`);
 
-      const notes = cleanText(args.notes, 2000);
+      const screened = screenText(args.notes, 2000);
+      const notes = markIfFlagged(screened);
       const { error } = await ctx.db.from("grant_outcomes").insert({
         session_id: "mcp",
         funder_slug: args.funder_slug,
